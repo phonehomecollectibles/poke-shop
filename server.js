@@ -66,13 +66,7 @@ await pool.query(`
     stock = EXCLUDED.stock,
     image_url = EXCLUDED.image_url;
 `);
-await pool.query(`
-  DELETE FROM products
-  WHERE id NOT IN (
-    'twilight','phantasmal','mega','destined','surging','journey','bbwf','ascended-pack','ascended-etb'
-  );
-`);
-
+}
 async function cleanupExpiredReservations() {
   const now = Date.now();
 
