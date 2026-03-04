@@ -15,21 +15,45 @@
 
 <body>
 
-<header class="wrap">
+<header class="wrap header">
+  <div class="brand">
+    <div class="logo">⚡</div>
+    <div>
+      <h1>Pokemon Pack Shop</h1>
+      <p class="sub">
+        Reserve packs for stream pulls • Inventory updates instantly
+        <span class="pill">Hold: 60 min</span>
+      </p>
+      <p class="links">
+        <a href="https://twitch.tv/YOURNAME" target="_blank" rel="noreferrer">twitch.tv/YOURNAME</a>
+        <span class="dot">•</span>
+        <a href="https://instagram.com/YOURNAME" target="_blank" rel="noreferrer">@YOURNAME</a>
+      </p>
+    </div>
+  </div>
 
-<h1>Pokemon Pack Shop</h1>
-<p>Live pack openings • Inventory updates automatically</p>
-
+  <div class="panel">
+    <div class="panelTitle">How reservations work</div>
+    <ol class="steps">
+      <li>Select qty → tap <strong>Reserve</strong></li>
+      <li>You’ll get a reservation code</li>
+      <li>Message me the code to claim</li>
+    </ol>
+  </div>
 </header>
 
 <main class="wrap">
+  <div class="toolbar">
+    <input id="search" class="search" placeholder="Search packs (e.g., Ascended, ETB)..." />
+    <select id="sort" class="sort">
+      <option value="name">Sort: Name</option>
+      <option value="priceAsc">Sort: Price (low → high)</option>
+      <option value="priceDesc">Sort: Price (high → low)</option>
+      <option value="stockDesc">Sort: Stock (high → low)</option>
+    </select>
+  </div>
 
-<div id="grid" class="grid"></div>
+  <div id="grid" class="grid"></div>
 
+  <div id="toast" class="toast" aria-live="polite"></div>
 </main>
-
-<script src="app.js"></script>
-
-</body>
-
-</html>
