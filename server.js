@@ -47,12 +47,10 @@ async function initDb() {
     );
   `);
 
-  const { rows } = await pool.query(`SELECT COUNT(*)::int AS c FROM products`);
-
-if (rows[0].c === 0) {
-  await pool.query(`
-    INSERT INTO products (id,name,price_cents,stock,image_url)
-    VALUES
+// Always upsert your current inventory (safe to run on every deploy)
+await pool.query(`
+  INSERT INTO products (id,name,price_cents,stock,image_url)
+  VALUES
     ('twilight','Twilight Masquerade Pack',650,7,''),
     ('phantasmal','Phantasmal Flames Pack',750,4,''),
     ('mega','Mega Evolutions Pack',700,7,''),
@@ -62,9 +60,18 @@ if (rows[0].c === 0) {
     ('bbwf','Black Bolt & White Flare (12 packs)',9000,3,''),
     ('ascended-pack','Ascended Heroes Pack',900,18,''),
     ('ascended-etb','Ascended Heroes ETB',9000,1,'')
-  `);
-}
-}
+  ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    price_cents = EXCLUDED.price_cents,
+    stock = EXCLUDED.stock,
+    image_url = EXCLUDED.image_url;
+`);
+await pool.query(`
+  DELETE FROM products
+  WHERE id NOT IN (
+    'twilight','phantasmal','mega','destined','surging','journey','bbwf','ascended-pack','ascended-etb'
+  );
+`);
 
 async function cleanupExpiredReservations() {
   const now = Date.now();
