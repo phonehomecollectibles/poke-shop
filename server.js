@@ -246,7 +246,62 @@ app.post("/api/capture-order", async (req, res) => {
 
   res.json(data);
 });
+function requireAdmin(req, res) {
+  const token = req.header("x-admin-token");
+  if (!ADMIN_TOKEN || token !== ADMIN_TOKEN) {
+    res.status(401).json({ error: "Unauthorized" });
+    return false;
+  }
+  return true;
+}
 
+// Create or update a product
+app.post("/api/admin/upsert-product", async (req, res) => {
+  try {
+    if (!requireAdmin(req, res)) return;
+
+    const { id, name, price_cents, stock, image_url = "" } = req.body;
+    if (!id || !name || typeof price_cents !== "number" || typeof stock !== "number") {
+      return res.status(400).json({ error: "Missing/invalid fields" });
+    }
+
+    await pool.query(
+      `INSERT INTO products (id, name, price_cents, stock, image_url)
+       VALUES ($1,$2,$3,$4,$5)
+       ON CONFLICT (id) DO UPDATE SET
+         name = EXCLUDED.name,
+         price_cents = EXCLUDED.price_cents,
+         stock = EXCLUDED.stock,
+         image_url = EXCLUDED.image_url`,
+      [id, name, price_cents, stock, image_url]
+    );
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+// View active reservations (what is currently held)
+app.get("/api/admin/reservations", async (req, res) => {
+  try {
+    if (!requireAdmin(req, res)) return;
+
+    await cleanupExpiredReservations();
+
+    const { rows } = await pool.query(
+      `SELECT r.id AS reservation_id, r.product_id, p.name, r.qty, r.expires_at, r.method, r.status
+       FROM reservations r
+       JOIN products p ON p.id = r.product_id
+       WHERE r.status = 'reserved'
+       ORDER BY r.expires_at ASC`
+    );
+
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
 const port = process.env.PORT || 3000;
 
 initDb().then(() => {
